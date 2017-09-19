@@ -80,12 +80,31 @@ class ReflexAgent(Agent):
         pacman_postition = newPos
         ghost_position = newGhostStates[0].getPosition()
         ghost_distance = manhattanDistance(pacman_postition, ghost_position)
-        dist_lst = [manhattanDistance(newPos, x) for x in newFood.asList()]
+        food_dist = [manhattanDistance(newPos, x) for x in newFood.asList()]
+        # min_dist = float("inf")
+        # min_dist = 9999
 
+        # for width in range(len(newFood[0])):
+        #     for length in range(len(newFood)):
+        #         if newFood[width][length]:
+        #             dist = manhattanDistance(newPos, (width, length))
+        #             if dist < min_dist:
+        #                 min_dist = dist
+        # if min_dist == 9999:
+        #     min_dis = 0
+
+        # list = []
+        # for x in range(self.width):
+        #     for y in range(self.height):
+        #         if self[x][y] == key: list.append((x, y))
+        # return list
+
+        if len(newScaredTimes) != 0 and newGhostStates[0].scaredTimer != 0:
+            updated = updated - 20.0 / newGhostStates[0].scaredTimer
         if ghost_distance != 0:
             updated = updated - 10.0 / ghost_distance
-        if len(dist_lst) != 0:
-            updated = updated  + 10.0 / min(dist_lst)
+        if len(food_dist) != 0:
+            updated = updated  + 10.0 / min(food_dist)
 
         return updated
 
@@ -123,6 +142,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
     """
+    minimax_score = 0
 
     def getAction(self, gameState):
         """
@@ -148,35 +168,44 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        bestScore, bestMove = self.maxFunction(gameState, self.depth)
+        result = self.maximizer(gameState, self.depth)
 
-        return bestMove
+        return result[1]
 
-    def maxFunction(self, gameState, depth):
-        if depth == 0 or gameState.isWin() or gameState.isLose():
-            return self.evaluationFunction(gameState), "noMove"
+    def maximizer(self, gameState, depth):
+        if gameState.isWin() or gameState.isLose() or depth == 0:
+            return self.evaluationFunction(gameState), ""
 
-        moves = gameState.getLegalActions()
-        scores = [self.minFunction(gameState.generateSuccessor(self.index, move), 1, depth) for move in moves]
-        bestScore = max(scores)
-        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = bestIndices[0]
-        return bestScore, moves[chosenIndex]
+        actions_lst = gameState.getLegalActions()
+        max_score = float("-inf")
 
-    def minFunction(self, gameState, agent, depth):
-        if depth == 0 or gameState.isWin() or gameState.isLose():
-            return self.evaluationFunction(gameState), "noMove"
-        moves = gameState.getLegalActions(agent)  # get legal actions.
+        index = 0
+        for i in range(len(actions_lst)):
+            score = self.minimizer(gameState.generateSuccessor(self.index, actions_lst[i]), 1, depth)
+            if score > max_score:
+                max_score = score
+                index = i
+
+        best_action = actions_lst[index]
+        return max_score, best_action
+
+    def minimizer(self, gameState, agent, depth):
+        if gameState.isWin() or gameState.isLose() or depth == 0:
+            return self.evaluationFunction(gameState)
+        actions_lst = gameState.getLegalActions(agent)
         scores = []
-        if (agent != gameState.getNumAgents() - 1):
-            scores = [self.minFunction(gameState.generateSuccessor(agent, move), agent + 1, depth) for move in moves]
+        if (agent == gameState.getNumAgents() - 1):
+            for i in range(len(actions_lst)):
+                score = self.maximizer(gameState.generateSuccessor(agent, actions_lst[i]), depth - 1)
+                scores.append(score)
+
         else:
-            scores = [self.maxFunction(gameState.generateSuccessor(agent, move), (depth - 1))[0] for move in moves]
-        minScore = min(scores)
-        worstIndices = [index for index in range(len(scores)) if scores[index] == minScore]
-        chosenIndex = worstIndices[0]
-        return minScore, moves[chosenIndex]
-            # util.raiseNotDefined()
+            for i in range(len(actions_lst)):
+                score = self.minimizer(gameState.generateSuccessor(agent, actions_lst[i]), agent + 1, depth)
+                scores.append(score)
+        return min(scores)
+
+        # util.raiseNotDefined()
         #########################################################################################
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
