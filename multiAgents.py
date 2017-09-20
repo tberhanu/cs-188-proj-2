@@ -218,40 +218,48 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        alpha = float("-inf")
+        beta = float("inf")
+        result = self.maximizer(gameState, self.depth, 0, alpha, beta)
+        return result[1]
 
-        def maxS(state, depth, agentIndex, alpha, beta):
-            depth -= 1  # THIS WAS THE PROBLEM- you must dec IMMEDIATELY
-            if depth < 0 or state.isLose() or state.isWin():
-                return (self.evaluationFunction(state), None)
-            v = float("-inf")
-            for action in state.getLegalActions(agentIndex):
-                successor = state.generateSuccessor(agentIndex, action)
-                score = minS(successor, depth, agentIndex + 1, alpha, beta)[0]
-                if score > v:
-                    v = score
-                    maxAction = action
-                if v > beta:
-                    return (v, maxAction)
-                alpha = max(alpha, v)
-            return (v, maxAction)
 
-        def minS(state, depth, agentIndex, alpha, beta):
-            if depth < 0 or state.isLose() or state.isWin():
-                return (self.evaluationFunction(state), None)
-            v = float("inf")
-            evalfunc, nextAgent = (minS, agentIndex + 1) if agentIndex < state.getNumAgents() - 1 else (maxS, 0)
-            for action in state.getLegalActions(agentIndex):
-                successor = state.generateSuccessor(agentIndex, action)
-                score = evalfunc(successor, depth, nextAgent, alpha, beta)[0]
-                if score < v:
-                    v = score
-                    minAction = action
-                if v < alpha:
-                    return (v, minAction)
-                beta = min(beta, v)
-            return (v, minAction)
+    def maximizer(self, state, depth, index, alpha, beta):
 
-        return maxS(gameState, self.depth, 0, float("-inf"), float("inf"))[1]
+        if  state.isLose() or state.isWin() or depth == 0:
+            return self.evaluationFunction(state), ""
+        value = float("-inf")
+        action_lst = state.getLegalActions(index)
+        for action in action_lst:
+            successor = state.generateSuccessor(index, action)
+            score = self.minimizer(successor, depth - 1, index + 1, alpha, beta)
+            if score > value:
+                value = score
+                move = action
+            if beta < value:
+                return value, move
+            alpha = max(alpha, value)
+        return value, move
+
+    def minimizer(self, state, depth, index, alpha, beta):
+        if depth < 0 or state.isLose() or state.isWin():
+            return self.evaluationFunction(state)
+        value = float("inf")
+        actions_lst = state.getLegalActions(index)
+
+        for action in actions_lst:
+            successor = state.generateSuccessor(index, action)
+            if index >= state.getNumAgents() - 1:
+                score = self.maximizer(successor, depth, 0, alpha, beta)[0]
+            else:
+                score = self.minimizer(successor, depth, index + 1, alpha, beta)
+            if score < value:
+                value = score
+            if value < alpha:
+                return value
+            beta = min(beta, value)
+        return value
+
 
         # util.raiseNotDefined()
 
