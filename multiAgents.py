@@ -81,23 +81,6 @@ class ReflexAgent(Agent):
         ghost_position = newGhostStates[0].getPosition()
         ghost_distance = manhattanDistance(pacman_postition, ghost_position)
         food_dist = [manhattanDistance(newPos, x) for x in newFood.asList()]
-        # min_dist = float("inf")
-        # min_dist = 9999
-
-        # for width in range(len(newFood[0])):
-        #     for length in range(len(newFood)):
-        #         if newFood[width][length]:
-        #             dist = manhattanDistance(newPos, (width, length))
-        #             if dist < min_dist:
-        #                 min_dist = dist
-        # if min_dist == 9999:
-        #     min_dis = 0
-
-        # list = []
-        # for x in range(self.width):
-        #     for y in range(self.height):
-        #         if self[x][y] == key: list.append((x, y))
-        # return list
 
         if len(newScaredTimes) != 0 and newGhostStates[0].scaredTimer != 0:
             updated = updated - 20.0 / newGhostStates[0].scaredTimer
@@ -205,7 +188,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 scores.append(score)
         return min(scores)
 
-        # util.raiseNotDefined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -260,9 +242,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             beta = min(beta, value)
         return value
 
-
-        # util.raiseNotDefined()
-
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
@@ -314,7 +293,6 @@ def betterEvaluationFunction(currentGameState):
     "*** YOUR CODE HERE ***"
     pac_pos = currentGameState.getPacmanPosition()
     food_pos_lst = currentGameState.getFood().asList()
-    value = len(currentGameState.getCapsules())
 
     min_dist = 10
     flag = False
@@ -323,15 +301,17 @@ def betterEvaluationFunction(currentGameState):
         if gap < min_dist:
             min_dist = gap
             flag = True
+
+    value_pellet = len(currentGameState.getCapsules())
     if flag:
-        value += min_dist
+        value_pellet += min_dist
     ghost_post_lst = currentGameState.getGhostPositions()
     for ghost_pos in ghost_post_lst:
         dist = util.manhattanDistance(pac_pos, ghost_pos)
         if dist < 3:
-            value = 100
+            return currentGameState.getScore() - 100
 
-    return currentGameState.getScore() - value
+    return currentGameState.getScore() - value_pellet
 
 # Abbreviation
 better = betterEvaluationFunction
