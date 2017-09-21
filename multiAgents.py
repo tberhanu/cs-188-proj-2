@@ -206,7 +206,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         return min(scores)
 
         # util.raiseNotDefined()
-        #########################################################################################
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -226,10 +225,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     def maximizer(self, state, depth, index, alpha, beta):
 
+        action_lst = state.getLegalActions(index)
         if  state.isLose() or state.isWin() or depth == 0:
             return self.evaluationFunction(state), ""
         value = float("-inf")
-        action_lst = state.getLegalActions(index)
         for action in action_lst:
             successor = state.generateSuccessor(index, action)
             score = self.minimizer(successor, depth - 1, index + 1, alpha, beta)
@@ -242,10 +241,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         return value, move
 
     def minimizer(self, state, depth, index, alpha, beta):
-        if depth < 0 or state.isLose() or state.isWin():
+
+        actions_lst = state.getLegalActions(index)
+        if state.isLose() or state.isWin() or depth < 0:
             return self.evaluationFunction(state)
         value = float("inf")
-        actions_lst = state.getLegalActions(index)
 
         for action in actions_lst:
             successor = state.generateSuccessor(index, action)
@@ -276,34 +276,33 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        return self.getActionHelper(gameState, self.depth, 0)[1]
+        result = self.expectimax(gameState, self.depth, 0)
+        return result[1]
 
-    def getActionHelper(self, gameState, depth, agentIndex):
-        if depth == 0 or gameState.isWin() or gameState.isLose():
-            eval_result = self.evaluationFunction(gameState)
-            return (eval_result, '')
-        else:
-            if agentIndex == gameState.getNumAgents() - 1:
-                depth -= 1
-            if agentIndex == 0:
-                maxAlpha = -99999999
+    def expectimax(self, gameState, depth, index):
+
+        actions_lst = gameState.getLegalActions(index)
+        if gameState.isWin() or gameState.isLose() or depth == 0:
+            return  self.evaluationFunction(gameState), ""
+
+        if index == gameState.getNumAgents() - 1:
+            depth -= 1
+        next_index = 0
+        if index + 1 != gameState.getNumAgents():
+            next_index = index + 1
+
+        best_move = ""
+        alpha = float("-inf") if index == 0 else 0
+        for action in actions_lst:
+            result = self.expectimax(gameState.generateSuccessor(index, action), depth, next_index)
+            if index == 0:
+                if result[0] > alpha:
+                    alpha = result[0]
+                    best_move = action
             else:
-                maxAlpha = 0
-            maxAction = ''
-            nextAgentIndex = (agentIndex + 1) % gameState.getNumAgents()
-            actions = gameState.getLegalActions(agentIndex)
-            for action in actions:
-                result = self.getActionHelper(gameState.generateSuccessor(agentIndex, action), depth,
-                                              nextAgentIndex)
-                if agentIndex == 0:
-                    if result[0] > maxAlpha:
-                        maxAlpha = result[0]
-                        maxAction = action
-                else:
-                    maxAlpha += 1.0 / len(actions) * result[0]
-                    maxAction = action
-            return (maxAlpha, maxAction)
-            #########################################################################################
+                alpha += 100.0 / len(actions_lst) * result[0]
+                best_move = action
+        return alpha, best_move
 
             # util.raiseNotDefined()
 
