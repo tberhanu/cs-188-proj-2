@@ -302,16 +302,17 @@ def betterEvaluationFunction(currentGameState):
             min_dist = gap
             flag = True
 
-    value_pellet = len(currentGameState.getCapsules())
+    left_pellet = len(currentGameState.getCapsules())
     if flag:
-        value_pellet += min_dist
+        left_pellet += min_dist
+
     ghost_post_lst = currentGameState.getGhostPositions()
     for ghost_pos in ghost_post_lst:
         dist = util.manhattanDistance(pac_pos, ghost_pos)
         if dist < 3:
             return currentGameState.getScore() - 100
 
-    return currentGameState.getScore() - value_pellet
+    return currentGameState.getScore() - left_pellet
 
 # Abbreviation
 better = betterEvaluationFunction
