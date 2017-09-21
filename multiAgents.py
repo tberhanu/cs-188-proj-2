@@ -300,11 +300,9 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                     alpha = result[0]
                     best_move = action
             else:
-                alpha += 100.0 / len(actions_lst) * result[0]
+                alpha += 1.0 / len(actions_lst) * result[0]
                 best_move = action
         return alpha, best_move
-
-            # util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -314,29 +312,26 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    evalNum = 0
-    pacmanPosition = currentGameState.getPacmanPosition()
-    foodPositions = currentGameState.getFood().asList()
-    minDistance = 10000
-    setMinDistance = False
-    for foodPosition in foodPositions:
-        foodDistance = util.manhattanDistance(pacmanPosition, foodPosition)
-        if foodDistance < minDistance:
-            minDistance = foodDistance
-            setMinDistance = True
-    if setMinDistance:
-        evalNum += minDistance
-    evalNum += 1000 * currentGameState.getNumFood()
-    evalNum += 10 * len(currentGameState.getCapsules())
-    ghostPositions = currentGameState.getGhostPositions()
-    for ghostPosition in ghostPositions:
-        ghostDistance = util.manhattanDistance(pacmanPosition, ghostPosition)
-        if ghostDistance < 2:
-            evalNum = 9999999999999999
-    evalNum -= 10 * currentGameState.getScore()
-    # print("min distance: " + str(minDistance) + " num food: " + str(len(foodPositions)) + " eval num: " + str(evalNum*(-1)))
-    return evalNum * (-1)
-    util.raiseNotDefined()
+    pac_pos = currentGameState.getPacmanPosition()
+    food_pos_lst = currentGameState.getFood().asList()
+    value = len(currentGameState.getCapsules())
+
+    min_dist = 10
+    flag = False
+    for food_pos in food_pos_lst:
+        gap = util.manhattanDistance(pac_pos, food_pos)
+        if gap < min_dist:
+            min_dist = gap
+            flag = True
+    if flag:
+        value += min_dist
+    ghost_post_lst = currentGameState.getGhostPositions()
+    for ghost_pos in ghost_post_lst:
+        dist = util.manhattanDistance(pac_pos, ghost_pos)
+        if dist < 3:
+            value = 100
+
+    return currentGameState.getScore() - value
 
 # Abbreviation
 better = betterEvaluationFunction
